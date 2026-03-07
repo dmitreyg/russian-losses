@@ -560,7 +560,7 @@ function HomePage({ rawData, agg, years, setPage }) {
         {/* Category bars */}
         <Panel style={{ marginBottom:44 }}>
           <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:20 }}>{t.allCategories}</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 40px" }}>
+          <div className="cat-grid">
             {CATEGORY_KEYS.filter(k=>agg.cumulative[k]>0).map((k,i) => {
               const Icon = Icons[k];
               const pct = (agg.cumulative[k]/maxCat)*100;
@@ -1326,13 +1326,15 @@ export default function App() {
             ::-webkit-scrollbar-track{background:${th.bg}}
             ::-webkit-scrollbar-thumb{background:${th.border};border-radius:2px}
             @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+            .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}}
           `}</style>
 
           {/* NAV */}
           <nav style={{ position:"sticky", top:0, zIndex:100, background:th.navBg,
             backdropFilter:"blur(14px)", borderBottom:`1px solid ${th.border}`,
-            display:"flex", alignItems:"center", padding:"0 24px", height:52, gap:4 }}>
-            <div style={{ fontSize:11, letterSpacing:3, fontWeight:700, color:th.accent,
+            display:"flex", alignItems:"center", padding:"0 24px", height:58, gap:4 }}>
+            <div style={{ fontSize:13, letterSpacing:3, fontWeight:700, color:th.accent,
               textTransform:"uppercase", marginRight:28, flexShrink:0 }}>{t.brand}</div>
             <div style={{ display:"flex", gap:3, flex:1, overflowX:"auto", paddingBottom:2 }}>
               {navItems.map(p => (
@@ -1340,7 +1342,7 @@ export default function App() {
                   background: page===p.id ? th.accent+"14" : "transparent",
                   border: `1px solid ${page===p.id ? th.accent+"44" : "transparent"}`,
                   color: page===p.id ? th.accent : th.dim,
-                  padding:"5px 12px", borderRadius:6, cursor:"pointer", fontSize:11,
+                  padding:"6px 14px", borderRadius:6, cursor:"pointer", fontSize:13,
                   letterSpacing:1, fontWeight: page===p.id ? 700 : 400,
                   transition:"all .15s", flexShrink:0,
                 }}>{p.label}</button>
@@ -1351,7 +1353,7 @@ export default function App() {
               <div style={{ display:"flex", gap:2 }}>
                 {["en","ua"].map(l => (
                   <button key={l} onClick={() => { setLang(l); localStorage.setItem("lang",l); }} style={{
-                    padding:"3px 8px", borderRadius:4, fontSize:10, cursor:"pointer",
+                    padding:"4px 10px", borderRadius:4, fontSize:12, cursor:"pointer",
                     border:`1px solid ${lang===l ? th.accent+"44" : th.border}`,
                     background: lang===l ? th.accent+"11" : "transparent",
                     color: lang===l ? th.accent : th.dim,
@@ -1360,10 +1362,10 @@ export default function App() {
               </div>
               {/* Theme */}
               <button onClick={() => setTheme(t => { const next = t==="dark"?"light":"dark"; localStorage.setItem("theme",next); return next; })} style={{
-                padding:"4px 10px", borderRadius:4, fontSize:11, cursor:"pointer",
+                padding:"5px 12px", borderRadius:4, fontSize:14, cursor:"pointer",
                 border:`1px solid ${th.border}`, background:th.panel2, color:th.dim,
               }}>{theme==="dark" ? "☀" : "☾"}</button>
-              <div style={{ fontSize:10, color:th.muted, fontFamily:"'JetBrains Mono',monospace", whiteSpace:"nowrap" }}>
+              <div style={{ fontSize:12, color:th.muted, fontFamily:"'JetBrains Mono',monospace", whiteSpace:"nowrap" }}>
                 {lastDate.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
               </div>
             </div>
