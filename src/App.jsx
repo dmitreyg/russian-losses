@@ -464,8 +464,14 @@ function HomePage({ rawData, agg, years, setPage }) {
                 Comprehensive tracking of Russian military losses in Ukraine.<br/>
                 Data sourced from public records · <span style={{ color:th.accent }}>Feb 24, 2022 – present</span>
               </div>
+              <div className="daw-mobile">
+                <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:6 }}>{t.daysOfWar}</div>
+                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:36, fontWeight:600, color:th.spike, lineHeight:1 }}>
+                  {warDaysCount.toLocaleString()}
+                </div>
+              </div>
             </div>
-            <div style={{ textAlign:"right" }}>
+            <div className="daw-desktop" style={{ textAlign:"right" }}>
               <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:8 }}>{t.daysOfWar}</div>
               <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:52, fontWeight:600, color:th.spike, lineHeight:1 }}>
                 {warDaysCount.toLocaleString()}
@@ -1328,7 +1334,8 @@ export default function App() {
             @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
             .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
             .hero-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
-            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;gap:24px}}
+            .daw-mobile{display:none}
+            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;gap:0}.daw-desktop{display:none}.daw-mobile{display:block;margin-top:20px}}
           `}</style>
 
           {/* NAV */}
