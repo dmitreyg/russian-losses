@@ -20,6 +20,7 @@ const T = {
     milestones: "Key Milestones", peakContext: "Context · Peak Month",
     troughContext: "Context · Slowdown",
     citationPlaceholder: "Phase 8 · Citations to be added",
+    latestDaily: "Latest Daily Report",
     forecastSection: "Forecast", actualSection: "Confirmed Data",
     forecastDisclaimer: "Projection based on historical trend. Not a military intelligence assessment.",
     confidence: "±15% confidence band",
@@ -35,7 +36,7 @@ const T = {
     vehicles: "Supply Vehicles", boats: "Naval Vessels", missiles: "Cruise Missiles",
     se: "Special Equipment",
   },
-  uk: {
+  ua: {
     brand: "РУ · ВТРАТИ", overview: "Огляд", analysis: "Аналіз",
     updated: "Оновлено", daysOfWar: "Днів війни", warDay: "День війни",
     personnelLosses: "Втрати особового складу", allTimeCumulative: "Сукупні втрати за весь час",
@@ -50,6 +51,7 @@ const T = {
     milestones: "Ключові події", peakContext: "Контекст · Пік",
     troughContext: "Контекст · Спад",
     citationPlaceholder: "Фаза 8 · Цитати будуть додані",
+    latestDaily: "Останній щоденний звіт",
     forecastSection: "Прогноз", actualSection: "Підтверджені дані",
     forecastDisclaimer: "Прогноз на основі історичних даних. Не є розвідувальною оцінкою.",
     confidence: "±15% довірчий інтервал",
@@ -243,7 +245,7 @@ function DarkTooltip({ active, payload, label }) {
   const th = THEMES[useTheme()];
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:th.panel, border:`1px solid ${th.border}`, padding:"10px 14px", borderRadius:8, fontFamily:"'Syne',sans-serif", fontSize:12 }}>
+    <div style={{ background:th.panel, border:`1px solid ${th.border}`, padding:"10px 14px", borderRadius:8, fontFamily:"'Inter',sans-serif", fontSize:12 }}>
       <div style={{ color:th.text, fontWeight:700, marginBottom:4 }}>{label}</div>
       {payload.map((p,i) => <div key={i} style={{ color:p.color||th.accent }}>{p.name}: {(p.value||0).toLocaleString()}</div>)}
     </div>
@@ -302,7 +304,7 @@ function MiniBarChart({ monthlyData, peakMonth, troughMonth, catKey, lang }) {
   const months = Array.from({length:12},(_,i)=>i+1);
   const vals = months.map(m => monthlyData[m]?.[catKey]||0);
   const max = Math.max(...vals, 1);
-  const mnames = lang==="uk" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
+  const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
   return (
     <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:52, marginTop:16 }}>
       {months.map(m => {
@@ -421,7 +423,7 @@ function HomePage({ rawData, agg, years, setPage }) {
   const warDays = Math.floor((lastDate-firstDate)/86400000)+1;
   const warDaysCount = useCountUp(warDays, 2000);
   const personnelCount = useCountUp(agg.cumulative.personnel, 1800);
-  const mnames = lang==="uk" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
+  const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
 
   const yoyData = years.map(y => ({
     year: String(y), personnel: agg.byYear[y]?.personnel||0,
@@ -447,14 +449,14 @@ function HomePage({ rawData, agg, years, setPage }) {
       {/* Hero */}
       <div style={{ padding:"72px 36px 52px", borderBottom:`1px solid ${th.border}`, position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse 60% 50% at 10% 50%, ${th.accent}08, transparent), radial-gradient(ellipse 40% 60% at 90% 20%, ${th.spike}05, transparent)`, pointerEvents:"none" }} />
-        <div style={{ position:"absolute", right:-30, top:-30, fontSize:200, fontWeight:800, color:th.grain, fontFamily:"'Syne',sans-serif", pointerEvents:"none", userSelect:"none", lineHeight:1 }}>RU</div>
+        <div style={{ position:"absolute", right:-30, top:-30, fontSize:200, fontWeight:800, color:th.grain, fontFamily:"'Inter',sans-serif", pointerEvents:"none", userSelect:"none", lineHeight:1 }}>RU</div>
         <div style={{ maxWidth:1100, margin:"0 auto", position:"relative" }}>
           <div style={{ fontSize:10, letterSpacing:4, color:th.dim, textTransform:"uppercase", marginBottom:20 }}>
             Russian Armed Forces · Confirmed Losses · Ukraine War
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"end" }}>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800, lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:10 }}>
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800, lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:10 }}>
                 {personnelCount.toLocaleString()}
               </div>
               <div style={{ fontSize:11, letterSpacing:3, textTransform:"uppercase", color:th.dim, marginBottom:24 }}>{t.personnelLosses}</div>
@@ -494,13 +496,45 @@ function HomePage({ rawData, agg, years, setPage }) {
           })}
         </div>
 
+        {/* Latest daily report */}
+        {(() => {
+          const lastDay = rawData[allDates[allDates.length-1]];
+          const dateLabel = lastDate.toLocaleDateString(lang==="ua" ? "uk-UA" : "en-US", { day:"numeric", month:"long", year:"numeric" });
+          const hasAny = CATEGORY_KEYS.some(k => lastDay[k] > 0);
+          if (!hasAny) return null;
+          return (
+            <>
+              <SectionLabel>
+                {t.latestDaily}
+                <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:10, color:th.accent, letterSpacing:1, textTransform:"none" }}>{dateLabel}</span>
+              </SectionLabel>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))", gap:10, marginBottom:52 }}>
+                {CATEGORY_KEYS.filter(k => lastDay[k] > 0).map((k,i) => {
+                  const Icon = Icons[k];
+                  return (
+                    <div key={k} style={{ background:th.panel, border:`1px solid ${th.border}`, borderRadius:10, padding:"16px 16px" }}>
+                      <div style={{ marginBottom:8 }}>
+                        <Icon s={18} c={CAT_COLORS[i%CAT_COLORS.length]} />
+                      </div>
+                      <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:22, fontWeight:600, color:th.text, lineHeight:1, marginBottom:4 }}>
+                        +{lastDay[k].toLocaleString()}
+                      </div>
+                      <div style={{ fontSize:9, color:th.dim, letterSpacing:1, textTransform:"uppercase" }}>{t[k]||k}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
+
         {/* Charts row */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:44 }}>
           <Panel>
             <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:18 }}>{t.byYear}</div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={yoyData} margin={{top:0,right:0,bottom:0,left:-20}}>
-                <XAxis dataKey="year" tick={{fill:th.dim,fontSize:11,fontFamily:"'Syne',sans-serif"}} axisLine={false} tickLine={false}/>
+                <XAxis dataKey="year" tick={{fill:th.dim,fontSize:11,fontFamily:"'Inter',sans-serif"}} axisLine={false} tickLine={false}/>
                 <YAxis tick={{fill:th.muted,fontSize:9}} axisLine={false} tickLine={false} tickFormatter={formatNum}/>
                 <Tooltip content={<DarkTooltip/>}/>
                 <Bar dataKey="personnel" name={t.personnel} radius={[3,3,0,0]}>
@@ -567,7 +601,7 @@ function HomePage({ rawData, agg, years, setPage }) {
                 <div style={{ fontSize:9, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:8 }}>
                   {isForecast ? t.forecastYear : isCurrentYear ? t.partialYear : t.fullYear}
                 </div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontSize:34, fontWeight:800, color:th.text, lineHeight:1, marginBottom:8 }}>
+                <div style={{ fontFamily:"'Inter',sans-serif", fontSize:34, fontWeight:800, color:th.text, lineHeight:1, marginBottom:8 }}>
                   {formatNum(total)}
                 </div>
                 <div style={{ color:th.dim, fontSize:10, letterSpacing:1, textTransform:"uppercase", marginBottom:10 }}>{t.personnelLosses}</div>
@@ -600,7 +634,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
   const lang = useLang();
   const t = useT();
   const [activeCat, setActiveCat] = useState("personnel");
-  const mnames = lang==="uk" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
+  const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
   const now = new Date();
   const isCurrentYear = year === now.getFullYear();
   const isForecast = year > now.getFullYear();
@@ -648,7 +682,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
     <div style={{ animation:"fadeIn 0.45s ease both" }}>
       {/* Hero */}
       <div style={{ padding:"60px 36px 44px", borderBottom:`1px solid ${th.border}`, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", right:-20, top:-20, fontFamily:"'Syne',sans-serif",
+        <div style={{ position:"absolute", right:-20, top:-20, fontFamily:"'Inter',sans-serif",
           fontSize:220, fontWeight:800, lineHeight:1, color:th.grain, pointerEvents:"none", userSelect:"none" }}>
           {year}
         </div>
@@ -659,7 +693,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"start" }}>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800,
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800,
                 lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:8 }}>{year}</div>
               <div style={{ fontSize:11, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:24 }}>
                 Russian Armed Forces · Confirmed Losses
@@ -716,7 +750,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
               fontSize:9, letterSpacing:2, textTransform:"uppercase", marginBottom:12 }}>
               {t.peakTag}
             </div>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:30, fontWeight:800, color:th.text, lineHeight:1, marginBottom:4 }}>
+            <div style={{ fontFamily:"'Inter',sans-serif", fontSize:30, fontWeight:800, color:th.text, lineHeight:1, marginBottom:4 }}>
               {mnames[peakMonth-1]} {year}
             </div>
             <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:42, fontWeight:600, color:th.spike, lineHeight:1, marginBottom:6 }}>
@@ -736,7 +770,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
               fontSize:9, letterSpacing:2, textTransform:"uppercase", marginBottom:12 }}>
               {t.troughTag}
             </div>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:30, fontWeight:800, color:th.text, lineHeight:1, marginBottom:4 }}>
+            <div style={{ fontFamily:"'Inter',sans-serif", fontSize:30, fontWeight:800, color:th.text, lineHeight:1, marginBottom:4 }}>
               {mnames[troughMonth-1]} {year}
             </div>
             <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:42, fontWeight:600, color:th.trough, lineHeight:1, marginBottom:6 }}>
@@ -763,14 +797,14 @@ function YearPage({ year, agg, rawData, prevYear }) {
                   border:`1px solid ${activeCat===k ? th.accent+"44" : th.border}`,
                   background: activeCat===k ? th.accent+"11" : "transparent",
                   color: activeCat===k ? th.accent : th.dim,
-                  cursor:"pointer", fontFamily:"'Syne',sans-serif", textTransform:"uppercase"
+                  cursor:"pointer", fontFamily:"'Inter',sans-serif", textTransform:"uppercase"
                 }}>{t[k]||k}</button>
               ))}
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{top:0,right:0,bottom:0,left:-20}}>
-              <XAxis dataKey="name" tick={{fill:th.dim,fontSize:10,fontFamily:"'Syne',sans-serif"}} axisLine={false} tickLine={false}/>
+              <XAxis dataKey="name" tick={{fill:th.dim,fontSize:10,fontFamily:"'Inter',sans-serif"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:th.muted,fontSize:9}} axisLine={false} tickLine={false} tickFormatter={formatNum}/>
               <Tooltip content={<DarkTooltip/>}/>
               <Bar dataKey="value" name={t[activeCat]||activeCat} radius={[3,3,0,0]}>
@@ -854,7 +888,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
 function ForecastPage({ forecastYear, agg, lang }) {
   const th = THEMES[useTheme()];
   const t = useT();
-  const mnames = lang==="uk" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
+  const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
   const [activeCat, setActiveCat] = useState("personnel");
 
   const forecast = useMemo(() =>
@@ -872,10 +906,10 @@ function ForecastPage({ forecastYear, agg, lang }) {
   return (
     <div style={{ animation:"fadeIn 0.45s ease both" }}>
       <div style={{ padding:"60px 36px 44px", borderBottom:`1px solid ${th.border}`, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", right:-20, top:-20, fontFamily:"'Syne',sans-serif", fontSize:220, fontWeight:800, lineHeight:1, color:th.grain, pointerEvents:"none", userSelect:"none" }}>{forecastYear}</div>
+        <div style={{ position:"absolute", right:-20, top:-20, fontFamily:"'Inter',sans-serif", fontSize:220, fontWeight:800, lineHeight:1, color:th.grain, pointerEvents:"none", userSelect:"none" }}>{forecastYear}</div>
         <div style={{ maxWidth:1100, margin:"0 auto", position:"relative" }}>
           <div style={{ fontSize:10, letterSpacing:4, color:th.forecast, textTransform:"uppercase", marginBottom:16 }}>{t.forecastYear} · {forecastYear}</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800, lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:20 }}>{forecastYear}</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800, lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:20 }}>{forecastYear}</div>
           <div style={{ background:`${th.gold}11`, border:`1px solid ${th.gold}33`, borderRadius:8, padding:"12px 16px", display:"inline-block", marginBottom:16 }}>
             <div style={{ fontSize:11, color:th.gold }}>{t.forecastDisclaimer}</div>
           </div>
@@ -891,13 +925,13 @@ function ForecastPage({ forecastYear, agg, lang }) {
                 border:`1px solid ${activeCat===k ? th.accent+"44" : th.border}`,
                 background: activeCat===k ? th.accent+"11" : "transparent",
                 color: activeCat===k ? th.accent : th.dim,
-                cursor:"pointer", fontFamily:"'Syne',sans-serif", textTransform:"uppercase"
+                cursor:"pointer", fontFamily:"'Inter',sans-serif", textTransform:"uppercase"
               }}>{t[k]||k}</button>
             ))}
           </div>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart data={chartData} margin={{top:0,right:0,bottom:0,left:-20}}>
-              <XAxis dataKey="name" tick={{fill:th.dim,fontSize:11,fontFamily:"'Syne',sans-serif"}} axisLine={false} tickLine={false}/>
+              <XAxis dataKey="name" tick={{fill:th.dim,fontSize:11,fontFamily:"'Inter',sans-serif"}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fill:th.muted,fontSize:9}} axisLine={false} tickLine={false} tickFormatter={formatNum}/>
               <Tooltip content={<DarkTooltip/>}/>
               <Area type="monotone" dataKey="hi" stroke="none" fill={th.forecast+"22"} name={t.confidence}/>
@@ -945,7 +979,7 @@ function AnalysisPage({ agg, years, lang }) {
   const t = useT();
   const [selCat, setSelCat] = useState("personnel");
   const [viewMode, setViewMode] = useState("overlay");
-  const mnames = lang==="uk" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
+  const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
   const catIdx = CATEGORY_KEYS.indexOf(selCat);
   const catColor = CAT_COLORS[catIdx];
 
@@ -1025,7 +1059,7 @@ function AnalysisPage({ agg, years, lang }) {
       <div style={{ padding:"52px 36px 36px", borderBottom:`1px solid ${th.border}` }}>
         <div style={{ maxWidth:1100, margin:"0 auto" }}>
           <div style={{ fontSize:10, letterSpacing:4, color:th.dim, textTransform:"uppercase", marginBottom:12 }}>Deep Dive</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:48, fontWeight:800, color:th.text, letterSpacing:-2 }}>Analysis</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:48, fontWeight:800, color:th.text, letterSpacing:-2 }}>Analysis</div>
         </div>
       </div>
 
@@ -1064,7 +1098,7 @@ function AnalysisPage({ agg, years, lang }) {
                   padding:"4px 12px", borderRadius:20, fontSize:10, cursor:"pointer",
                   border:`1px solid ${viewMode===v?th.accent+"44":th.border}`,
                   background:viewMode===v?th.accent+"11":"transparent",
-                  color:viewMode===v?th.accent:th.dim, fontFamily:"'Syne',sans-serif"
+                  color:viewMode===v?th.accent:th.dim, fontFamily:"'Inter',sans-serif"
                 }}>{l}</button>
               ))}
             </div>
@@ -1099,7 +1133,7 @@ function AnalysisPage({ agg, years, lang }) {
         {/* Rate of change table */}
         <SectionLabel>{t.analysisTable}</SectionLabel>
         <Panel style={{ marginBottom:44, overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:"'Syne',sans-serif", fontSize:11 }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:"'Inter',sans-serif", fontSize:11 }}>
             <thead>
               <tr>
                 <th style={{ textAlign:"left", padding:"8px 12px", color:th.dim, fontWeight:600, borderBottom:`1px solid ${th.border}`, fontSize:9, letterSpacing:2, textTransform:"uppercase" }}>Category</th>
@@ -1220,8 +1254,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState("home");
-  const [theme, setTheme] = useState("dark");
-  const [lang, setLang] = useState("en");
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [lang, setLang] = useState(() => localStorage.getItem("lang") || "en");
 
   useEffect(() => {
     fetch("https://russian-casualties.in.ua/api/v1/data/json/daily")
@@ -1250,11 +1284,11 @@ export default function App() {
 
   if (loading || error) return (
     <div style={{ background:THEMES.dark.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');`}</style>
       {error
-        ? <div style={{ color:THEMES.dark.spike, fontFamily:"'Syne',sans-serif" }}>{error}</div>
+        ? <div style={{ color:THEMES.dark.spike, fontFamily:"'Inter',sans-serif" }}>{error}</div>
         : <div style={{ textAlign:"center" }}>
-            <div style={{ fontFamily:"'Syne',sans-serif", color:THEMES.dark.accent, letterSpacing:4, fontSize:11, marginBottom:20, textTransform:"uppercase" }}>
+            <div style={{ fontFamily:"'Inter',sans-serif", color:THEMES.dark.accent, letterSpacing:4, fontSize:11, marginBottom:20, textTransform:"uppercase" }}>
               {T.en.loadingData}
             </div>
             <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
@@ -1283,11 +1317,11 @@ export default function App() {
   return (
     <ThemeCtx.Provider value={theme}>
       <LangCtx.Provider value={lang}>
-        <div style={{ background:th.bg, minHeight:"100vh", color:th.text, fontFamily:"'Syne',sans-serif" }}>
+        <div style={{ background:th.bg, minHeight:"100vh", color:th.text, fontFamily:"'Inter',sans-serif" }}>
           <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
             *{box-sizing:border-box;margin:0;padding:0}
-            button{font-family:'Syne',sans-serif}
+            button{font-family:'Inter',sans-serif}
             ::-webkit-scrollbar{width:4px}
             ::-webkit-scrollbar-track{background:${th.bg}}
             ::-webkit-scrollbar-thumb{background:${th.border};border-radius:2px}
@@ -1315,8 +1349,8 @@ export default function App() {
             <div style={{ display:"flex", gap:8, alignItems:"center", marginLeft:12, flexShrink:0 }}>
               {/* Language */}
               <div style={{ display:"flex", gap:2 }}>
-                {["en","uk"].map(l => (
-                  <button key={l} onClick={() => setLang(l)} style={{
+                {["en","ua"].map(l => (
+                  <button key={l} onClick={() => { setLang(l); localStorage.setItem("lang",l); }} style={{
                     padding:"3px 8px", borderRadius:4, fontSize:10, cursor:"pointer",
                     border:`1px solid ${lang===l ? th.accent+"44" : th.border}`,
                     background: lang===l ? th.accent+"11" : "transparent",
@@ -1325,7 +1359,7 @@ export default function App() {
                 ))}
               </div>
               {/* Theme */}
-              <button onClick={() => setTheme(t => t==="dark"?"light":"dark")} style={{
+              <button onClick={() => setTheme(t => { const next = t==="dark"?"light":"dark"; localStorage.setItem("theme",next); return next; })} style={{
                 padding:"4px 10px", borderRadius:4, fontSize:11, cursor:"pointer",
                 border:`1px solid ${th.border}`, background:th.panel2, color:th.dim,
               }}>{theme==="dark" ? "☀" : "☾"}</button>
