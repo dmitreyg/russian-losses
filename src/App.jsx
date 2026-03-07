@@ -454,7 +454,7 @@ function HomePage({ rawData, agg, years, setPage }) {
           <div style={{ fontSize:10, letterSpacing:4, color:th.dim, textTransform:"uppercase", marginBottom:20 }}>
             Russian Armed Forces · Confirmed Losses · Ukraine War
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"end" }}>
+          <div className="hero-grid">
             <div>
               <div style={{ fontFamily:"'Inter',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800, lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:10 }}>
                 {personnelCount.toLocaleString()}
@@ -1327,7 +1327,8 @@ export default function App() {
             ::-webkit-scrollbar-thumb{background:${th.border};border-radius:2px}
             @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
             .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
-            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}}
+            .hero-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
+            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;gap:24px}}
           `}</style>
 
           {/* NAV */}
