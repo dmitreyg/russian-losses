@@ -6,6 +6,8 @@ import Icons from "./data/icons.jsx";
 import MILESTONES from "./data/milestones.js";
 import CITATIONS_DATA from "./data/citations.js";
 
+console.log("Build:", __BUILD__);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CONTEXTS
 // ─────────────────────────────────────────────────────────────────────────────
