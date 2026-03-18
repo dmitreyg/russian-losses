@@ -194,26 +194,53 @@ function linearRegression(ys) {
 }
 
 function buildForecast(byYearMonth, fromMonth, fromYear, toMonth, toYear) {
-  const history = [];
   const allYears = Object.keys(byYearMonth).map(Number).sort();
+  const history = [];
   allYears.forEach(y => {
     for (let m = 1; m <= 12; m++) {
       if (byYearMonth[y]?.[m]) history.push({ y, m, ...byYearMonth[y][m] });
     }
   });
-  const trailing = history.slice(-12);
+  const trailing = history.slice(-24);
+
   const forecast = [];
   let cur = { y: fromYear, m: fromMonth };
   while (cur.y < toYear || (cur.y === toYear && cur.m <= toMonth)) {
     const point = { year: cur.y, month: cur.m, forecast: true };
     CATEGORY_KEYS.forEach(k => {
-      const vals = trailing.map(h => h[k]||0);
-      const { m: slope, b: intercept } = linearRegression(vals);
+      const vals = trailing.map(h => h[k] || 0);
+      const overallAvg = vals.reduce((a, b) => a + b, 0) / (vals.length || 1);
+
+      // seasonal index: for each calendar month, avg ratio to overall mean
+      const seasonalIndex = {};
+      for (let mo = 1; mo <= 12; mo++) {
+        const monthVals = trailing.filter(h => h.m === mo).map(h => h[k] || 0);
+        seasonalIndex[mo] = monthVals.length
+          ? (monthVals.reduce((a, b) => a + b, 0) / monthVals.length) / (overallAvg || 1)
+          : 1;
+      }
+
+      // deseasonalize history, fit trend on deseasonalized values
+      const deseason = vals.map((v, i) => v / (seasonalIndex[trailing[i].m] || 1));
+      const { m: slope, b: intercept } = linearRegression(deseason);
       const idx = trailing.length + forecast.length;
-      const val = Math.max(0, Math.round(slope * idx + intercept));
+      const trendVal = Math.max(0, slope * idx + intercept);
+
+      // reapply seasonal multiplier for the forecast month
+      const val = Math.max(0, Math.round(trendVal * (seasonalIndex[cur.m] || 1)));
+
+      // confidence band: use std dev of this calendar month's historical values
+      const monthHistorical = trailing.filter(h => h.m === cur.m).map(h => h[k] || 0);
+      let band = val * 0.15;
+      if (monthHistorical.length > 1) {
+        const avg = monthHistorical.reduce((a, b) => a + b, 0) / monthHistorical.length;
+        const variance = monthHistorical.reduce((s, v) => s + (v - avg) ** 2, 0) / monthHistorical.length;
+        band = Math.sqrt(variance);
+      }
+
       point[k] = val;
-      point[k+"_lo"] = Math.round(val * 0.85);
-      point[k+"_hi"] = Math.round(val * 1.15);
+      point[k + "_lo"] = Math.max(0, Math.round(val - band));
+      point[k + "_hi"] = Math.round(val + band);
     });
     forecast.push(point);
     cur.m++;
