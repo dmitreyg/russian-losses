@@ -21,6 +21,7 @@ const T = {
     peakTag: "▲ Peak Loss Month", troughTag: "▼ Lowest Loss Month",
     warDaysCovered: "War Days Covered", dailyAvg: "Daily Avg · Personnel",
     monthlyBreakdown: "Monthly Breakdown", categoryComposition: "Category Composition",
+    monthlyExtremes: "Monthly Extremes",
     twitterContext: "Context", socialCitations: "Social Context",
     milestones: "Key Milestones", peakContext: "Context · Peak Month",
     troughContext: "Context · Slowdown",
@@ -39,7 +40,7 @@ const T = {
     artillery: "Artillery", mlrs: "MLRS", aaws: "Anti-Aircraft",
     aircraft: "Aircraft", helicopters: "Helicopters", uav: "UAVs / Drones",
     vehicles: "Supply Vehicles", boats: "Naval Vessels", missiles: "Cruise Missiles",
-    se: "Special Equipment",
+    se: "Special Equipment", aboveYearAverage: "above that year's monthly average"
   },
   ua: {
     comprehensiveText: "Всебічне відстеження військових втрат РФ в Україні. ",
@@ -56,6 +57,7 @@ const T = {
     peakTag: "▲ Місяць пікових втрат", troughTag: "▼ Місяць мінімальних втрат",
     warDaysCovered: "Охоплено днів війни", dailyAvg: "Серед. на день · Особ. склад",
     monthlyBreakdown: "Помісячна розбивка", categoryComposition: "Склад втрат за категоріями",
+    monthlyExtremes: "Місячні екстремуми",
     twitterContext: "Контекст", socialCitations: "Соціальний контекст",
     milestones: "Ключові події", peakContext: "Контекст · Пік",
     troughContext: "Контекст · Спад",
@@ -74,7 +76,7 @@ const T = {
     artillery: "Артилерія", mlrs: "РСЗО", aaws: "ППО",
     aircraft: "Літаки", helicopters: "Гелікоптери", uav: "БПЛА / Дрони",
     vehicles: "Автотехніка", boats: "Кораблі", missiles: "Крилаті ракети",
-    se: "Спецтехніка",
+    se: "Спецтехніка", aboveYearAverage: "вище середньомісячного показника за цей рік"
   }
 };
 
@@ -770,7 +772,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"44px 36px 80px" }}>
 
         {/* § Monthly Extremes */}
-        <SectionLabel>Monthly Extremes</SectionLabel>
+        <SectionLabel>{t.monthlyExtremes}</SectionLabel>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, marginBottom:44 }}>
           {/* Peak */}
           <div style={{ background:th.panel, border:`1px solid ${th.spike}33`, borderRadius:12,
@@ -1263,7 +1265,7 @@ function AnalysisPage({ agg, years, lang }) {
                   <div style={{ fontSize:12, color:th.text, fontWeight:600 }}>
                     {mnames[sp.m-1]} {sp.y} · {t[sp.k]||sp.k}
                   </div>
-                  <div style={{ fontSize:10, color:th.dim }}>+{sp.pct}% above that year's monthly average</div>
+                  <div style={{ fontSize:10, color:th.dim }}>+{sp.pct}% {t.aboveYearAverage}</div>
                 </div>
                 <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:18, fontWeight:600, color:CAT_COLORS[ci] }}>
                   {fmtFull(sp.v)}
@@ -1366,10 +1368,10 @@ export default function App() {
           {/* NAV */}
           <nav style={{ position:"sticky", top:0, zIndex:100, background:th.navBg,
             backdropFilter:"blur(14px)", borderBottom:`1px solid ${th.border}`,
-            display:"flex", alignItems:"center", padding:"0 24px", height:58, gap:4 }}>
+            display:"flex", alignItems:"center", flexWrap:"wrap", padding:"8px 24px", gap:4 }}>
             <div style={{ fontSize:13, letterSpacing:3, fontWeight:700, color:th.accent,
               textTransform:"uppercase", marginRight:28, flexShrink:0 }}>{t.brand}</div>
-            <div style={{ display:"flex", gap:3, flex:1, overflowX:"auto", paddingBottom:2 }}>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:3, flex:1 }}>
               {navItems.map(p => (
                 <button key={p.id} onClick={() => setPage(p.id)} style={{
                   background: page===p.id ? th.accent+"14" : "transparent",
