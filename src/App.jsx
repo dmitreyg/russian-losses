@@ -356,11 +356,11 @@ function MilestoneTimeline({ events }) {
   const t = useT();
   return (
     <div style={{ position:"relative", padding:"32px 0 8px" }}>
-      <div style={{ position:"absolute", left:0, right:0, top:"50%", height:1,
+      <div className="milestone-list-line" style={{ position:"absolute", left:0, right:0, top:"50%", height:1,
         background:th.border, transform:"translateY(-50%)" }} />
-      <div style={{ display:"flex", justifyContent:"space-between", position:"relative", gap:8 }}>
+      <div className="milestone-list" style={{ position:"relative" }}>
         {events.map((ev, i) => (
-          <div key={i} style={{ flex:1, display:"flex", flexDirection:"column",
+          <div key={i} className="milestone-item" style={{ flex:1, display:"flex", flexDirection:"column",
             alignItems:"center", gap:8, ...(i%2===0 ? {} : {flexDirection:"column-reverse"}) }}>
             {i%2===0 ? (
               <>
@@ -372,15 +372,15 @@ function MilestoneTimeline({ events }) {
                   </div>
                   <div style={{ fontSize:10, color:th.dim, lineHeight:1.4 }}>{ev.event}</div>
                 </div>
-                <div style={{ width:10, height:10, borderRadius:"50%",
+                <div className="milestone-dot" style={{ width:10, height:10, borderRadius:"50%",
                   background: ev.red ? th.spike : th.accent,
                   border:`2px solid ${th.bg}`, flexShrink:0, zIndex:1 }} />
-                <div style={{ height:24 }} />
+                <div className="milestone-spacer" style={{ height:24 }} />
               </>
             ) : (
               <>
-                <div style={{ height:24 }} />
-                <div style={{ width:10, height:10, borderRadius:"50%",
+                <div className="milestone-spacer" style={{ height:24 }} />
+                <div className="milestone-dot" style={{ width:10, height:10, borderRadius:"50%",
                   background: ev.red ? th.spike : th.accent,
                   border:`2px solid ${th.bg}`, flexShrink:0, zIndex:1 }} />
                 <div style={{ background:th.panel, border:`1px solid ${th.border}`,
@@ -562,7 +562,7 @@ function HomePage({ rawData, agg, years, setPage }) {
         })()}
 
         {/* Charts row */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:44 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:24, marginBottom:44 }}>
           <Panel>
             <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:18 }}>{t.byYear}</div>
             <ResponsiveContainer width="100%" height={200}>
@@ -1362,7 +1362,8 @@ export default function App() {
             .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
             .hero-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
             .daw-mobile{display:none}
-            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;gap:0}.daw-desktop{display:none}.daw-mobile{display:block;margin-top:20px}}
+            .milestone-list{display:flex;justify-content:space-between;position:relative;gap:8}
+            @media(max-width:600px) and (orientation:portrait){.cat-grid{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;gap:0}.daw-desktop{display:none}.daw-mobile{display:block;margin-top:20px}.milestone-list{flex-direction:column;gap:10}.milestone-list-line{display:none}.milestone-item{flex-direction:column!important;align-items:flex-start!important}.milestone-dot{display:none}.milestone-spacer{display:none}}
           `}</style>
 
           {/* NAV */}
