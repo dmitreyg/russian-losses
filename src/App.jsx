@@ -4,8 +4,13 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContai
 // ─────────────────────────────────────────────────────────────────────────────
 // TRANSLATIONS
 // ─────────────────────────────────────────────────────────────────────────────
+
 const T = {
   en: {
+    comprehensiveText: "Comprehensive tracking of Russian military losses in Ukraine.",
+    dataSourcedText: "Data sourced from public records · ",
+    dateRangeText: "Feb 24, 2022 – present",
+    pageTitle: "Russian Armed Forces · Confirmed Losses · Ukraine War",
     brand: "RU · LOSSES", overview: "Overview", analysis: "Analysis",
     updated: "Updated", daysOfWar: "Days of War", warDay: "War Day",
     personnelLosses: "Personnel Losses", allTimeCumulative: "All-Time Cumulative Losses",
@@ -37,6 +42,10 @@ const T = {
     se: "Special Equipment",
   },
   ua: {
+    comprehensiveText: "Всебічне відстеження військових втрат РФ в Україні. ",
+    dataSourcedText: "Дані отримані з публічних реєстрів · ",
+    dateRangeText: "24 лют. 2022 – дотепер",
+    pageTitle: "Збройні Сили РФ · Підтверджені Втрати · Війна в Україні",
     brand: "РУ · ВТРАТИ", overview: "Огляд", analysis: "Аналіз",
     updated: "Оновлено", daysOfWar: "Днів війни", warDay: "День війни",
     personnelLosses: "Втрати особового складу", allTimeCumulative: "Сукупні втрати за весь час",
@@ -130,6 +139,19 @@ const MONTH_NAMES_UK = ["Січ","Лют","Бер","Кві","Тра","Чер","�
 function getYear(d) { return parseInt(d.split(".")[0]); }
 function getMonth(d) { return parseInt(d.split(".")[1]); }
 function parseDate(s) { const [y,m,d] = s.split(".").map(Number); return new Date(y,m-1,d); }
+function findMissingDates(data) {
+  const keys = Object.keys(data).sort();
+  if (!keys.length) return [];
+  const first = parseDate(keys[0]);
+  const last = parseDate(keys[keys.length - 1]);
+  const existing = new Set(keys);  
+  const missing = [];
+  for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+    const key = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+    if (!existing.has(key)) missing.push(key);
+  }
+  return missing;
+}
 function formatNum(n) {
   if (!n) return "0";
   if (n >= 1000000) return (n/1000000).toFixed(1)+"M";
@@ -420,7 +442,9 @@ function HomePage({ rawData, agg, years, setPage }) {
   const allDates = Object.keys(rawData).sort();
   const lastDate = parseDate(allDates[allDates.length-1]);
   const firstDate = parseDate(allDates[0]);
-  const warDays = Math.floor((lastDate-firstDate)/86400000)+1;
+  //const warDays_old = Math.floor((lastDate-firstDate)/86400000)+1; //  
+  const warStart = new Date(2022, 1, 24); // Feb 24, 2022
+  const warDays = Math.floor((Date.now()-warStart)/86400000)+1;
   const warDaysCount = useCountUp(warDays, 2000);
   const personnelCount = useCountUp(agg.cumulative.personnel, 1800);
   const mnames = lang==="ua" ? MONTH_NAMES_UK : MONTH_NAMES_EN;
@@ -452,7 +476,7 @@ function HomePage({ rawData, agg, years, setPage }) {
         <div style={{ position:"absolute", right:-30, top:-30, fontSize:200, fontWeight:800, color:th.grain, fontFamily:"'Inter',sans-serif", pointerEvents:"none", userSelect:"none", lineHeight:1 }}>RU</div>
         <div style={{ maxWidth:1100, margin:"0 auto", position:"relative" }}>
           <div style={{ fontSize:10, letterSpacing:4, color:th.dim, textTransform:"uppercase", marginBottom:20 }}>
-            Russian Armed Forces · Confirmed Losses · Ukraine War
+            {t.pageTitle.toLocaleString()}            
           </div>
           <div className="hero-grid">
             <div>
@@ -461,8 +485,9 @@ function HomePage({ rawData, agg, years, setPage }) {
               </div>
               <div style={{ fontSize:11, letterSpacing:3, textTransform:"uppercase", color:th.dim, marginBottom:24 }}>{t.personnelLosses}</div>
               <div style={{ fontSize:13, color:th.dim, lineHeight:1.8 }}>
-                Comprehensive tracking of Russian military losses in Ukraine.<br/>
-                Data sourced from public records · <span style={{ color:th.accent }}>Feb 24, 2022 – present</span>
+                {t.comprehensiveText}<br/>
+                {t.dataSourcedText} 
+                <span style={{ color:th.accent }}>{t.dateRangeText}</span>
               </div>
               <div className="daw-mobile">
                 <div style={{ fontSize:10, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:6 }}>{t.daysOfWar}</div>
@@ -702,7 +727,7 @@ function YearPage({ year, agg, rawData, prevYear }) {
               <div style={{ fontFamily:"'Inter',sans-serif", fontSize:"clamp(52px,8vw,96px)", fontWeight:800,
                 lineHeight:.88, letterSpacing:-3, color:th.text, marginBottom:8 }}>{year}</div>
               <div style={{ fontSize:11, letterSpacing:3, color:th.dim, textTransform:"uppercase", marginBottom:24 }}>
-                Russian Armed Forces · Confirmed Losses
+                {t.pageTitle}                
               </div>
               <div style={{ display:"flex", gap:28, flexWrap:"wrap", marginBottom:16 }}>
                 {[["personnel",th.spike],["tanks",th.accent],["apv",th.accent],["uav","#ffb347"]].map(([k,c]) => (
@@ -1266,7 +1291,7 @@ export default function App() {
   useEffect(() => {
     fetch("https://russian-casualties.in.ua/api/v1/data/json/daily")
       .then(r => r.json())
-      .then(json => { setRawData(json.data); setLoading(false); })
+      .then(json => { setRawData(json.data); setLoading(false);  }) //console.log("Missing dates:", findMissingDates(json.data));
       .catch(() => setError(T.en.failedLoad));
   }, []);
 
